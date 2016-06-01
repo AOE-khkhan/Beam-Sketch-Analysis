@@ -22,7 +22,7 @@ function varargout = INK(varargin)
 
 % Edit the above text to modify the response to help INK
 
-% Last Modified by GUIDE v2.5 27-May-2016 11:48:25
+% Last Modified by GUIDE v2.5 31-May-2016 22:06:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -69,7 +69,7 @@ drawing =0;
 set(gcf,'WindowButtonDownFcn',@mouseDown)
 set(gcf,'WindowButtonMotionFcn',@mouseMove)
 set(gcf,'WindowButtonUpFcn',@mouseUp)
-
+ set(handles.loadpntslider,'Enable','off')
 global pnt
 global Npnt
 global fctr;
@@ -160,6 +160,7 @@ global sctr;
 global beam;
 global support;
 global force;
+global H3;
 drawing = 0;
 pause(1.5);
 flag=flag+1;
@@ -207,6 +208,13 @@ if flag==1
             forceng(fctr).pnts(:,1)=get(H2,'XData')';
             forceng(fctr).pnts(:,2)=get(H2,'YData')';
             force=forceng;
+            H3=H2;
+            set(handles.loadpntslider,'Enable','on');
+            temp=cell2mat(force.pnts);
+            fstart=temp(1,1);
+            bstart=beam.pnts(1,1);
+            lnstart=fstart-bstart;
+            set(handles.loadpntslider,'value',lnstart);
         case 'Torque'
             fctr=fctr+1;
             force(fctr).pnts(:,1)=get(H2,'XData')';
@@ -261,6 +269,85 @@ function edit1_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function edit1_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on slider movement.
+function loadpntslider_Callback(hObject, eventdata, handles)
+% hObject    handle to loadpntslider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+global H3;
+global beam;
+bstart=beam.pnts(1,1);
+set(hObject,'Min',0);bmax=beam.pnts(2,1);
+Ln = (get(hObject,'Value'));set(hObject,'Max',bmax-bstart);
+set(handles.Loadpnt,'String',Ln);
+forceng.pnts(:,1)=get(H3,'XData')';
+forceng.pnts(:,2)=get(H3,'YData')';
+temp=cell2mat(forceng.pnts);
+dl=temp(2,1)-temp(2,2);dr=temp(3,2)-temp(3,1);
+temp(:,1)=bstart+Ln; temp(1,2)=bstart+Ln;
+temp(2,2)=bstart+Ln-dl;
+temp(3,2)=bstart+Ln+dr;
+delete(H3);
+h(1)=plot([temp(1,1),temp(1,2)],[temp(1,3),temp(1,4)],'g','linewidth',3);
+hold on
+h(2)=plot([temp(2,1),temp(2,2)],[temp(2,3),temp(2,4)],'g','linewidth',3);
+h(3)=plot([temp(3,1),temp(3,2)],[temp(3,3),temp(3,4)],'g','linewidth',3);
+H3=h;
+
+% --- Executes during object creation, after setting all properties.
+function loadpntslider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to loadpntslider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+
+function Loadpnt_Callback(hObject, eventdata, handles)
+% hObject    handle to Loadpnt (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Loadpnt as text
+%        str2double(get(hObject,'String')) returns contents of Loadpnt as a double
+Ln=str2double(get(hObject,'String'));
+set(handles.loadpntslider,'Value',Ln);
+global H3;
+global beam;
+bstart=beam.pnts(1,1);
+forceng.pnts(:,1)=get(H3,'XData')';
+forceng.pnts(:,2)=get(H3,'YData')';
+temp=cell2mat(forceng.pnts);
+dl=temp(2,1)-temp(2,2);dr=temp(3,2)-temp(3,1);
+temp(:,1)=bstart+Ln; temp(1,2)=bstart+Ln;
+temp(2,2)=bstart+Ln-dl;
+temp(3,2)=bstart+Ln+dr;
+delete(H3);
+h(1)=plot([temp(1,1),temp(1,2)],[temp(1,3),temp(1,4)],'g','linewidth',3);
+hold on
+h(2)=plot([temp(2,1),temp(2,2)],[temp(2,3),temp(2,4)],'g','linewidth',3);
+h(3)=plot([temp(3,1),temp(3,2)],[temp(3,3),temp(3,4)],'g','linewidth',3);
+H3=h;
+% --- Executes during object creation, after setting all properties.
+function Loadpnt_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Loadpnt (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
