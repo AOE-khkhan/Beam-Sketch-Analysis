@@ -72,12 +72,12 @@ set(gcf,'WindowButtonUpFcn',@mouseUp)
  set(handles.loadpntslider,'Enable','off')
 global pnt
 global Npnt
-global fctr;
-global sctr;
+% global fctr;
+% global sctr;
 global ctr;
 ctr=0;
-fctr=0;
-sctr=0;
+% fctr=0;
+% sctr=0;
 clear global index
 pnt = zeros(1000,3);
 Npnt = 0;
@@ -109,11 +109,15 @@ set(handles.edit1,'string',[]);
 global pnt
 global Npnt
 global flag
-global force;
+global WL;
+global WR;
+global PV1;global PV2;
+global force; global TR;
+
 flag=0;
 force=0;
-clear global force;
-clear global support;
+clear global force;clear global TR;
+clear global WR;clear global WL;clear global PV1; clear global PV2;
 clear global beam;
 clear global ctr;
 clear global index;
@@ -129,10 +133,9 @@ function Analysis_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global pnt;
 global Npnt;
-global fctr;
-global sctr;
+% global fctr;
+% global sctr;
 global beam;
-global support;
 global force;
 
 [load,len]=getparametrs(beam,force);
@@ -157,14 +160,16 @@ global flag
 global pnt
 global h;
 global Npnt;
-global fctr;
-global sctr;
+% global fctr;
+% global sctr;
 global beam;
-global support;
-global force;
+global WL;
+global WR;
+global PV1;global PV2;
+global force; global TR;
 global H3;
-global ctr;
-global index;
+% global ctr;
+% global index;
 drawing = 0;
 pause(1.5);
 flag=flag+1;
@@ -180,38 +185,38 @@ if flag==1
      end
     
     Candidate=pnt;  % candidate
-    ctr=ctr+1;
-    [index(ctr),shape] = ImageClassifier(Candidate); %Image based classifier
+%     ctr=ctr+1;
+    [index,shape] = ImageClassifier(Candidate); %Image based classifier
            
     set(handles.text1,'string',shape,'fontsize',20);
     delete(h(:));
-    H2=Redraw(index(ctr),pnt);
+    H2=Redraw(index,pnt);
     switch shape
         case 'Beam'
             beam.pnts(:,1)=get(H2,'XData')';
             beam.pnts(:,2)=get(H2,'YData')';
         case 'Wall_Left'
-            sctr=sctr+1;
-            support(sctr).pnts(:,1)=get(H2,'XData')';
-            support(sctr).pnts(:,2)=get(H2,'YData')';
+%             sctr=sctr+1;
+            WL.pnts(:,1)=get(H2,'XData')';
+            WL.pnts(:,2)=get(H2,'YData')';
             
         case 'Wall_Right'
-            sctr=sctr+1;
-            support(sctr).pnts(:,1)=get(H2,'XData')';
-            support(sctr).pnts(:,2)=get(H2,'YData')';
+%             sctr=sctr+1;
+            WR.pnts(:,1)=get(H2,'XData')';
+            WR.pnts(:,2)=get(H2,'YData')';
         case 'Pivot_1'
-            sctr=sctr+1;
-            support(sctr).pnts(:,1)=get(H2,'XData')';
-            support(sctr).pnts(:,2)=get(H2,'YData')';
+%             sctr=sctr+1;
+            PV1.pnts(:,1)=get(H2,'XData')';
+            PV1.pnts(:,2)=get(H2,'YData')';
         case 'Pivot_2'
-            sctr=sctr+1;
-            support(sctr).pnts(:,1)=get(H2,'XData')';
-            support(sctr).pnts(:,2)=get(H2,'YData')';
+%             sctr=sctr+1;
+            PV2.pnts(:,1)=get(H2,'XData')';
+            PV2.pnts(:,2)=get(H2,'YData')';
         case 'Force'
-            fctr=fctr+1;
-            forceng(fctr).pnts(:,1)=get(H2,'XData')';
-            forceng(fctr).pnts(:,2)=get(H2,'YData')';
-            force=forceng;
+%             fctr=fctr+1;
+            force.pnts(:,1)=get(H2,'XData')';
+            force.pnts(:,2)=get(H2,'YData')';
+            
             H3=H2;
             set(handles.loadpntslider,'Enable','on');
             temp=cell2mat(force.pnts);
@@ -220,13 +225,13 @@ if flag==1
             lnstart=fstart-bstart;
             set(handles.loadpntslider,'value',lnstart);
         case 'Torque'
-            fctr=fctr+1;
-            force(fctr).pnts(:,1)=get(H2,'XData')';
-            force(fctr).pnts(:,2)=get(H2,'YData')';    
+%             fctr=fctr+1;
+            TR.pnts(:,1)=get(H2,'XData')';
+            TR.pnts(:,2)=get(H2,'YData')';    
     end 
     pnt = zeros(1000,3);
     Npnt = 0;
-if length(index)>=3 && flag==1
+if ~(isempty(beam)) && ~(isempty(force)) && ~(isempty(WL)) && flag==1
   btop=beam.pnts(3,2);
   temp=cell2mat(force.pnts);
  dy=temp(1,3)-btop;
@@ -238,7 +243,7 @@ if length(index)>=3 && flag==1
  hi(3)=plot([temp(3,1),temp(3,2)],[temp(3,3),temp(3,4)],'g','linewidth',3);
  H3=hi;
  delete(H2);
- temp2=cell2mat(support.pnts);
+ temp2=cell2mat(WL.pnts);
  bstart=beam.pnts(1,1);
  % if the support is left wall.
  dx=bstart-temp2(1,1);
