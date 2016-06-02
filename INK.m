@@ -240,6 +240,7 @@ if length(index)>=3 && flag==1
  delete(H2);
  temp2=cell2mat(support.pnts);
  bstart=beam.pnts(1,1);
+ % if the support is left wall.
  dx=bstart-temp2(1,1);
  temp2(:,1)=temp2(:,1)+dx; temp2(:,2)=temp2(:,2)+dx;
   hi2(1)=plot([temp2(1,1),temp2(1,2)],[temp2(1,3),temp2(1,4)],'k','linewidth',3);
