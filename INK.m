@@ -74,11 +74,11 @@ global pnt
 global Npnt
 global fctr;
 global sctr;
-
-
+global ctr;
+ctr=0;
 fctr=0;
 sctr=0;
-
+clear global index
 pnt = zeros(1000,3);
 Npnt = 0;
 tic
@@ -115,6 +115,8 @@ force=0;
 clear global force;
 clear global support;
 clear global beam;
+clear global ctr;
+clear global index;
 pnt = zeros(1000,3);
 Npnt = 0;
 clc
@@ -161,6 +163,8 @@ global beam;
 global support;
 global force;
 global H3;
+global ctr;
+global index;
 drawing = 0;
 pause(1.5);
 flag=flag+1;
@@ -176,12 +180,12 @@ if flag==1
      end
     
     Candidate=pnt;  % candidate
-    
-    [index,shape] = ImageClassifier(Candidate); %Image based classifier
+    ctr=ctr+1;
+    [index(ctr),shape] = ImageClassifier(Candidate); %Image based classifier
            
     set(handles.text1,'string',shape,'fontsize',20);
     delete(h(:));
-    H2=Redraw(index,pnt);
+    H2=Redraw(index(ctr),pnt);
     switch shape
         case 'Beam'
             beam.pnts(:,1)=get(H2,'XData')';
@@ -222,12 +226,30 @@ if flag==1
     end 
     pnt = zeros(1000,3);
     Npnt = 0;
-  
+if length(index)>=3 && flag==1
+  btop=beam.pnts(3,2);
+  temp=cell2mat(force.pnts);
+ dy=temp(1,3)-btop;
+ temp(:,3)=temp(:,3)-dy; temp(:,4)=temp(:,4)-dy; 
+ delete(H3);
+ hi(1)=plot([temp(1,1),temp(1,2)],[temp(1,3),temp(1,4)],'g','linewidth',3);
+ hold on
+ hi(2)=plot([temp(2,1),temp(2,2)],[temp(2,3),temp(2,4)],'g','linewidth',3);
+ hi(3)=plot([temp(3,1),temp(3,2)],[temp(3,3),temp(3,4)],'g','linewidth',3);
+ H3=hi;
+ delete(H2);
+ temp2=cell2mat(support.pnts);
+ bstart=beam.pnts(1,1);
+ dx=bstart-temp2(1,1);
+ temp2(:,1)=temp2(:,1)+dx; temp2(:,2)=temp2(:,2)+dx;
+  hi2(1)=plot([temp2(1,1),temp2(1,2)],[temp2(1,3),temp2(1,4)],'k','linewidth',3);
+ hold on
+ hi2(2)=plot([temp2(2,1),temp2(2,2)],[temp2(2,3),temp2(2,4)],'k','linewidth',3);
+ hi2(3)=plot([temp2(3,1),temp2(3,2)],[temp2(3,3),temp2(3,4)],'k','linewidth',3);
+ hi2(4)=plot([temp2(4,1),temp2(4,2)],[temp2(4,3),temp2(4,4)],'k','linewidth',3);
+ H2=hi2;
 end
-
-
-
-
+end
 
 function mouseMove(hObject, eventdata, handles)
 global drawing
