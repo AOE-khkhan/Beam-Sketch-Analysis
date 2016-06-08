@@ -1,4 +1,4 @@
-function [index,shape] = ImageClassifier(C,BP)
+function [index,shape,centr] = ImageClassifier(C,BP)
 % input:
 % C = candidate pnt
 % BP = Beam points after redraw
@@ -8,7 +8,7 @@ function [index,shape] = ImageClassifier(C,BP)
 % load 'Templete.mat';
 load 'TP.mat';
 %% image based classifier
-for i=1:8   
+for i=1:9   
     CRP=Imagetransfer(C);
     dh(i) = Hausdorff_distance(CRP,TP{i,1},2);
     dm(i) = MHD(CRP,TP{i,1});
@@ -27,6 +27,7 @@ PMx=min(C(:,1))+(max(C(:,1))-min(C(:,1)))/2; % Candidate mid-point x coordinate
 PMy=min(C(:,2))+(max(C(:,2))-min(C(:,2)))/2; % Candidate mid-point y coordinate
 dx=PMx-BMx;
 dy=PMy-BMy;
+centr=[PMx,PMy];
 if index==1 || index==2
     if dy>=0.07
         index=5;
@@ -59,4 +60,6 @@ switch index
         shape='Uniforce';
     case 8
         shape='Slopeforce';
+    case 9
+        shape='Delete';
 end

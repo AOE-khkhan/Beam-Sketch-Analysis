@@ -36,3 +36,7 @@ end
 if index == 8
     h=SlopeforceRedraw(pnt,BP);
 end
+if index==9
+    h(1,1)= mean(pnt(:,1));
+    h(1,2)= mean(pnt(:,2));
+end    

@@ -115,6 +115,8 @@ global WR;
 global PV1;global PV2;
 global force; global TR;
 global Beamflag;
+global allcenter;
+clear global allcenter;
 Beamflag=1;
 flag=0;
 force=0;
@@ -212,6 +214,7 @@ global Configid;
 global Hbeam; global Hforce;global HwallL; global HwallR;global HPV1; global HPV2;global Hudl;global Huvl;
 global HTR;
 global Beamflag;
+global allcenter;
 % global ctr;
 % global index;
 drawing = 0;
@@ -239,11 +242,12 @@ if flag==1
         Npnt = 0;
         Beamflag=0;
     else
+%         dlmwrite('InkData',pnt);
         Candidate=pnt;  % candidate
         %     ctr=ctr+1;
         if isempty(Candidate)==0
             BP=beam.pnts;
-            [index,shape] = ImageClassifier(Candidate,BP); %Image based classifier
+            [index,shape,centr] = ImageClassifier(Candidate,BP); %Image based classifier
             set(handles.text1,'string',shape,'fontsize',20);
             delete(h(:));
             H2=Redraw(index,pnt,BP);
@@ -252,41 +256,66 @@ if flag==1
                     %             sctr=sctr+1;
                     WL.pnts(:,1)=get(H2,'XData')';
                     WL.pnts(:,2)=get(H2,'YData')';
+                    WL.center=centr;
                     HwallL=H2;
-                    
+                    allcenter(1,:)=centr;
                 case 'Wall_Right'
                     %             sctr=sctr+1;
                     WR.pnts(:,1)=get(H2,'XData')';
                     WR.pnts(:,2)=get(H2,'YData')';
+                    WR.center=centr;
                     HwallR=H2;
+                    allcenter(2,:)=centr;
                 case 'Pivot_1'
                     %             sctr=sctr+1;
                     PV1.pnts(:,1)=get(H2,'XData')';
                     PV1.pnts(:,2)=get(H2,'YData')';
+                    PV1.center=centr;
                     HPV1=H2;
+                    allcenter(3,:)=centr;
                 case 'Pivot_2'
                     %             sctr=sctr+1;
                     PV2.pnts(:,1)=get(H2,'XData')';
                     PV2.pnts(:,2)=get(H2,'YData')';
+                    PV2.center=centr;
+                    allcenter(4,:)=centr;
                     HPV2=H2;
                 case 'Force'
                     force.pnts(:,1)=get(H2,'XData')';
                     force.pnts(:,2)=get(H2,'YData')';
+                    force.center=centr;
                     Hforce=H2;
+                    allcenter(5,:)=centr;
                     
                 case 'Torque'
                     %             fctr=fctr+1;
                     TR.pnts(:,1)=get(H2,'XData')';
                     TR.pnts(:,2)=get(H2,'YData')';
+                    TR.center=centr;
+                    allcenter(6,:)=centr;
                     HTR=H2;
                 case 'Uniforce'
                     Uniforce.pnts(:,1)=get(H2,'XData')';
                     Uniforce.pnts(:,2)=get(H2,'YData')';
+                    Uniforce.center=centr;
+                    allcenter(7,:)=centr;
                     Hudl=H2;
                 case 'Slopeforce'
                     Slopeforce.pnts(:,1)=get(H2,'XData')';
                     Slopeforce.pnts(:,2)=get(H2,'YData')'; 
+                    Slopeforce.center=centr;
+                    allcenter(8,:)=centr;
                     Huvl=H2;
+                case 'Delete'
+%                     allcenter=[WL.center;WR.center;PV1.center;PV2.center;force.center;...
+%                     TR.center;Uniforce.center;Slopeforce.center];
+                      for i=1:size(allcenter,1);
+                          if sum(abs(allcenter(i,:)))==0
+                              allcenter(i,:)=[100,100];
+                          end
+                      end
+                      [~,num]=min(pdist2(H2,allcenter));
+                    removfig(num,HwallL,HwallR,HPV1,HPV2,Hforce,HTR,Hudl,Huvl);
             end
         end
     end
