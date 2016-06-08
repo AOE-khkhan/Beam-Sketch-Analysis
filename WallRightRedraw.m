@@ -1,8 +1,13 @@
-function h=WallRightRedraw(pnt)
+function h=WallRightRedraw(pnt,BP)
+% BP = beam points after redraw
 
 PRwall = pnt;
 xmin=min(PRwall(:,1)); xmax=max(PRwall(:,1));
 ymin=min(PRwall(:,2)); ymax=max(PRwall(:,2));
+BRx=BP(2,1); % x coordinate of Beam Right point
+dx=xmin-BRx; % distance between WL and BeamLeft
+xmax=xmax-dx;
+xmin=xmin-dx;
 
 A=[xmin,ymax];
 B=[xmin,ymin];

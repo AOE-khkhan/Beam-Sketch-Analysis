@@ -63,13 +63,14 @@ guidata(hObject, handles);
 
 global flag
 flag=0;
-
+global Beamflag;
+Beamflag=1;
 global drawing;
 drawing =0;
 set(gcf,'WindowButtonDownFcn',@mouseDown)
 set(gcf,'WindowButtonMotionFcn',@mouseMove)
 set(gcf,'WindowButtonUpFcn',@mouseUp)
- set(handles.loadpntslider,'Enable','off')
+%  set(handles.loadpntslider,'Enable','off')
 global pnt
 global Npnt
 % global fctr;
@@ -113,7 +114,8 @@ global WL;
 global WR;
 global PV1;global PV2;
 global force; global TR;
-
+global Beamflag;
+Beamflag=1;
 flag=0;
 force=0;
 clear global force;clear global TR;
@@ -137,12 +139,40 @@ global Npnt;
 % global sctr;
 global beam;
 global force;
+global Configid;
 
 [load,len]=getparametrs(beam,force);
 set(handles.edit1,'String',strcat(num2str(load),' N'),'fontsize',16);
-deflection=(load*(len)^3)/(3*1000*1000);
-set(handles.text2,'String',num2str(deflection),'fontsize',16);
+%Maxdeflection=lookuptable(Configid);
+Maxdeflection=(load*(len)^3)/(3*1000*1000);
+set(handles.text2,'String',num2str(Maxdeflection),'fontsize',16);
+axes(handles.axes1);
+hold on
+Ft=cell2mat(force.pnts);
+x1=beam.pnts(1,1);y1=beam.pnts(1,2);
+x2=Ft(1,1);
+x3=beam.pnts(2,1);y3=beam.pnts(2,2);
+xx1=beam.pnts(4,1);yy1=beam.pnts(4,2);
+xx2=Ft(1,1);
+xx3=beam.pnts(3,1);yy3=beam.pnts(3,2);
 
+for i=1:20
+    y2=beam.pnts(2,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8*(i/20);
+    yy2=beam.pnts(3,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8*(i/20);
+    SP1=[x1,y1;x2,y2;x3,y3];
+    SP2=[xx1,yy1;xx2,yy2;xx3,yy3];
+    h1=Deflection1(SP1);
+    h2=Deflection1(SP2);
+    pause(0.1);
+    delete(h1);
+    delete(h2);
+end
+y2=beam.pnts(2,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8;
+yy2=beam.pnts(3,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8;
+SP1=[x1,y1;x2,y2;x3,y3];
+SP2=[xx1,yy1;xx2,yy2;xx3,yy3];
+h1=Deflection1(SP1);
+h2=Deflection1(SP2);
 
 % dlmwrite('InkData.txt',pnt);
 
@@ -150,8 +180,18 @@ set(handles.text2,'String',num2str(deflection),'fontsize',16);
 function mouseDown(hObject, eventdata, handles)
 global drawing
 global flag
+global state;
+global beam;
+global force;
+if ~(isempty(beam)) && ~(isempty(force)) 
+    state='Modification';
+else
+    state='Initial';
+end    
 flag=0;
 drawing = 1;
+
+
 
 
 function mouseUp(hObject, eventdata, handles)
@@ -167,7 +207,11 @@ global WL;
 global WR;
 global PV1;global PV2;
 global force; global TR;
-global H3;
+global Uniforce; global Slopeforce;
+global Configid;
+global Hbeam; global Hforce;global HwallL; global HwallR;global HPV1; global HPV2;global Hudl;global Huvl;
+global HTR;
+global Beamflag;
 % global ctr;
 % global index;
 drawing = 0;
@@ -179,82 +223,82 @@ flag=flag+1;
 
 if flag==1
     handles=guidata(hObject);
-     if Npnt<1000
-         pnt(Npnt+1:end,:) =[];
-          h(Npnt+1:end) =[];
-     end
-    
-    Candidate=pnt;  % candidate
-%     ctr=ctr+1;
-    [index,shape] = ImageClassifier(Candidate); %Image based classifier
-           
-    set(handles.text1,'string',shape,'fontsize',20);
-    delete(h(:));
-    H2=Redraw(index,pnt);
-    switch shape
-        case 'Beam'
-            beam.pnts(:,1)=get(H2,'XData')';
-            beam.pnts(:,2)=get(H2,'YData')';
-        case 'Wall_Left'
-%             sctr=sctr+1;
-            WL.pnts(:,1)=get(H2,'XData')';
-            WL.pnts(:,2)=get(H2,'YData')';
-            
-        case 'Wall_Right'
-%             sctr=sctr+1;
-            WR.pnts(:,1)=get(H2,'XData')';
-            WR.pnts(:,2)=get(H2,'YData')';
-        case 'Pivot_1'
-%             sctr=sctr+1;
-            PV1.pnts(:,1)=get(H2,'XData')';
-            PV1.pnts(:,2)=get(H2,'YData')';
-        case 'Pivot_2'
-%             sctr=sctr+1;
-            PV2.pnts(:,1)=get(H2,'XData')';
-            PV2.pnts(:,2)=get(H2,'YData')';
-        case 'Force'
-%             fctr=fctr+1;
-            force.pnts(:,1)=get(H2,'XData')';
-            force.pnts(:,2)=get(H2,'YData')';
-            
-            H3=H2;
-            set(handles.loadpntslider,'Enable','on');
-            temp=cell2mat(force.pnts);
-            fstart=temp(1,1);
-            bstart=beam.pnts(1,1);
-            lnstart=fstart-bstart;
-            set(handles.loadpntslider,'value',lnstart);
-        case 'Torque'
-%             fctr=fctr+1;
-            TR.pnts(:,1)=get(H2,'XData')';
-            TR.pnts(:,2)=get(H2,'YData')';    
-    end 
+    if Npnt<1000
+        pnt(Npnt+1:end,:) =[];
+        h(Npnt+1:end) =[];
+    end
+    if Beamflag==1  % just creat Beam at first
+        shape = 'Beam';
+        set(handles.text1,'string',shape,'fontsize',20);
+        delete(h(:));
+        H1=BeamRedraw(pnt); % just redraw Beam
+        beam.pnts(:,1)=get(H1,'XData')';  % store information for redraw other symbols
+        beam.pnts(:,2)=get(H1,'YData')';
+        % re-initialization
+        pnt = zeros(1000,3);
+        Npnt = 0;
+        Beamflag=0;
+    else
+        Candidate=pnt;  % candidate
+        %     ctr=ctr+1;
+        if isempty(Candidate)==0
+            BP=beam.pnts;
+            [index,shape] = ImageClassifier(Candidate,BP); %Image based classifier
+            set(handles.text1,'string',shape,'fontsize',20);
+            delete(h(:));
+            H2=Redraw(index,pnt,BP);
+            switch shape
+                case 'Wall_Left'
+                    %             sctr=sctr+1;
+                    WL.pnts(:,1)=get(H2,'XData')';
+                    WL.pnts(:,2)=get(H2,'YData')';
+                    HwallL=H2;
+                    
+                case 'Wall_Right'
+                    %             sctr=sctr+1;
+                    WR.pnts(:,1)=get(H2,'XData')';
+                    WR.pnts(:,2)=get(H2,'YData')';
+                    HwallR=H2;
+                case 'Pivot_1'
+                    %             sctr=sctr+1;
+                    PV1.pnts(:,1)=get(H2,'XData')';
+                    PV1.pnts(:,2)=get(H2,'YData')';
+                    HPV1=H2;
+                case 'Pivot_2'
+                    %             sctr=sctr+1;
+                    PV2.pnts(:,1)=get(H2,'XData')';
+                    PV2.pnts(:,2)=get(H2,'YData')';
+                    HPV2=H2;
+                case 'Force'
+                    force.pnts(:,1)=get(H2,'XData')';
+                    force.pnts(:,2)=get(H2,'YData')';
+                    Hforce=H2;
+                    
+                case 'Torque'
+                    %             fctr=fctr+1;
+                    TR.pnts(:,1)=get(H2,'XData')';
+                    TR.pnts(:,2)=get(H2,'YData')';
+                    HTR=H2;
+                case 'Uniforce'
+                    Uniforce.pnts(:,1)=get(H2,'XData')';
+                    Uniforce.pnts(:,2)=get(H2,'YData')';
+                    Hudl=H2;
+                case 'Slopeforce'
+                    Slopeforce.pnts(:,1)=get(H2,'XData')';
+                    Slopeforce.pnts(:,2)=get(H2,'YData')'; 
+                    Huvl=H2;
+            end
+        end
+    end
     pnt = zeros(1000,3);
     Npnt = 0;
-if ~(isempty(beam)) && ~(isempty(force)) && ~(isempty(WL)) && flag==1
-  btop=beam.pnts(3,2);
-  temp=cell2mat(force.pnts);
- dy=temp(1,3)-btop;
- temp(:,3)=temp(:,3)-dy; temp(:,4)=temp(:,4)-dy; 
- delete(H3);
- hi(1)=plot([temp(1,1),temp(1,2)],[temp(1,3),temp(1,4)],'g','linewidth',3);
- hold on
- hi(2)=plot([temp(2,1),temp(2,2)],[temp(2,3),temp(2,4)],'g','linewidth',3);
- hi(3)=plot([temp(3,1),temp(3,2)],[temp(3,3),temp(3,4)],'g','linewidth',3);
- H3=hi;
- delete(H2);
- temp2=cell2mat(WL.pnts);
- bstart=beam.pnts(1,1);
- % if the support is left wall.
- dx=bstart-temp2(1,1);
- temp2(:,1)=temp2(:,1)+dx; temp2(:,2)=temp2(:,2)+dx;
-  hi2(1)=plot([temp2(1,1),temp2(1,2)],[temp2(1,3),temp2(1,4)],'k','linewidth',3);
- hold on
- hi2(2)=plot([temp2(2,1),temp2(2,2)],[temp2(2,3),temp2(2,4)],'k','linewidth',3);
- hi2(3)=plot([temp2(3,1),temp2(3,2)],[temp2(3,3),temp2(3,4)],'k','linewidth',3);
- hi2(4)=plot([temp2(4,1),temp2(4,2)],[temp2(4,3),temp2(4,4)],'k','linewidth',3);
- H2=hi2;
-end
+if ~(isempty(beam)) && ~(isempty(force)) && ... 
+    (~(isempty(WL)) || ~(isempty(WR)) || ~(isempty(PV1)) || ~(isempty(PV2)))
+ Configid=findconfiguration(force,WL,WR,PV1,PV2,TR);
+%  delete(Hforce);
+%  delete(HwallL);
+%  [Hforce,HwallL]=beautify(beam,force,WL,WR,PV1,PV2,TR);
+ end
 end
 
 function mouseMove(hObject, eventdata, handles)
@@ -262,9 +306,21 @@ global drawing
 global Npnt
 global pnt
 global h;
+global state;
+global Hforce;
+global Hbeam;
+global beam;
+global force;
 global flag
 flag=0;
-if drawing
+C2=get(gca,'CurrentPoint');
+state=checkstate(C2,beam,force);
+if strcmp(state,'Modification-force')
+     set(gcf,'Pointer','hand');
+else
+     set(gcf,'Pointer','arrow');
+end     
+if drawing && strcmp(state,'Initial') 
     C = get(gca,'CurrentPoint');
     if C(1,1)<1 && C(1,1)>0 && C(1,2)<1 && C(1,2)>0
         Npnt = Npnt+1;
@@ -278,9 +334,25 @@ if drawing
         xlim([0 1]); ylim([0 1]);
         set(gca,'XTick',[],'YTick',[])
         box on
-        
+           
     end
-    
+elseif drawing && strcmp(state,'Modification-force')
+
+ delete(Hforce);
+ temp=cell2mat(force.pnts);
+ dl=temp(2,1)-temp(2,2);dr=temp(3,2)-temp(3,1);
+ temp(:,1)=C2(1,1);
+ temp(1,2)=C2(1,1);
+temp(2,2)=C2(1,1)-dl;
+temp(3,2)=C2(1,1)+dr;
+hi(1)=plot([temp(1,1),temp(1,2)],[temp(1,3),temp(1,4)],'g','linewidth',3);
+hold on
+hi(2)=plot([temp(2,1),temp(2,2)],[temp(2,3),temp(2,4)],'g','linewidth',3);
+hi(3)=plot([temp(3,1),temp(3,2)],[temp(3,3),temp(3,4)],'g','linewidth',3);
+Hforce=hi;
+force.pnts(:,1)=get(Hforce,'XData')';
+force.pnts(:,2)=get(Hforce,'YData')';
+
 end
 
 
@@ -307,80 +379,3 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on slider movement.
-function loadpntslider_Callback(hObject, eventdata, handles)
-% hObject    handle to loadpntslider (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-global H3;
-global beam;
-bstart=beam.pnts(1,1);
-set(hObject,'Min',0);bmax=beam.pnts(2,1);
-Ln = (get(hObject,'Value'));set(hObject,'Max',bmax-bstart);
-set(handles.Loadpnt,'String',Ln);
-forceng.pnts(:,1)=get(H3,'XData')';
-forceng.pnts(:,2)=get(H3,'YData')';
-temp=cell2mat(forceng.pnts);
-dl=temp(2,1)-temp(2,2);dr=temp(3,2)-temp(3,1);
-temp(:,1)=bstart+Ln; temp(1,2)=bstart+Ln;
-temp(2,2)=bstart+Ln-dl;
-temp(3,2)=bstart+Ln+dr;
-delete(H3);
-h(1)=plot([temp(1,1),temp(1,2)],[temp(1,3),temp(1,4)],'g','linewidth',3);
-hold on
-h(2)=plot([temp(2,1),temp(2,2)],[temp(2,3),temp(2,4)],'g','linewidth',3);
-h(3)=plot([temp(3,1),temp(3,2)],[temp(3,3),temp(3,4)],'g','linewidth',3);
-H3=h;
-
-% --- Executes during object creation, after setting all properties.
-function loadpntslider_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to loadpntslider (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-
-function Loadpnt_Callback(hObject, eventdata, handles)
-% hObject    handle to Loadpnt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Loadpnt as text
-%        str2double(get(hObject,'String')) returns contents of Loadpnt as a double
-Ln=str2double(get(hObject,'String'));
-set(handles.loadpntslider,'Value',Ln);
-global H3;
-global beam;
-bstart=beam.pnts(1,1);
-forceng.pnts(:,1)=get(H3,'XData')';
-forceng.pnts(:,2)=get(H3,'YData')';
-temp=cell2mat(forceng.pnts);
-dl=temp(2,1)-temp(2,2);dr=temp(3,2)-temp(3,1);
-temp(:,1)=bstart+Ln; temp(1,2)=bstart+Ln;
-temp(2,2)=bstart+Ln-dl;
-temp(3,2)=bstart+Ln+dr;
-delete(H3);
-h(1)=plot([temp(1,1),temp(1,2)],[temp(1,3),temp(1,4)],'g','linewidth',3);
-hold on
-h(2)=plot([temp(2,1),temp(2,2)],[temp(2,3),temp(2,4)],'g','linewidth',3);
-h(3)=plot([temp(3,1),temp(3,2)],[temp(3,3),temp(3,4)],'g','linewidth',3);
-H3=h;
-% --- Executes during object creation, after setting all properties.
-function Loadpnt_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Loadpnt (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end

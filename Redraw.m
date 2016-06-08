@@ -1,37 +1,38 @@
-function h= Redraw(index,pnt)
+function h = Redraw(index,pnt,BP)
+% input 
+% index = symbol recognition number
+% pnt = data points
+% BP = beam control points after redraw
 
-if index == 1   % beam re-draw
-    
-  h=  BeamRedraw(pnt);
+
+if index == 1   % Wall_left re-draw    
+    h=WallLeftRedraw(pnt,BP);
 end
 
-if index == 2   % Wall_left re-draw
-    
-   h= WallLeftRedraw(pnt);
+if index == 2   % Wall_right re-draw
+    h=WallRightRedraw(pnt,BP);
 end
 
-if index == 3   % Wall_right re-draw
-    
-  h =  WallRightRedraw(pnt);
+if index == 3   % pivot_1 re-draw    
+    h=Pivot1Redraw(pnt,BP);
 end
 
-if index == 4   % pivot_1 re-draw
-  
-  h=  Pivot1Redraw(pnt);
+if index == 4   % pivot_2 re-draw  
+    h=Pivot2Redraw(pnt,BP);
 end
 
-if index == 5   % pivot_2 re-draw
-    
-    
- h=   Pivot2Redraw(pnt);
+if index == 5   % force re-draw    
+    h=ForceRedraw(pnt,BP);
 end
 
-if index == 6   % force re-draw
-    
-  h=  ForceRedraw(pnt);
+if index == 6   % torque re-draw    
+    h=TorqueRedraw(pnt,BP);
 end
 
-if index == 7   % torque re-draw
-    
- h=   TorqueRedraw(pnt);
+if index == 7
+    h=UniforceRedraw(pnt,BP);
+end
+
+if index == 8
+    h=SlopeforceRedraw(pnt,BP);
 end
