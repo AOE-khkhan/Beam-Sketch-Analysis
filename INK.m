@@ -114,13 +114,14 @@ global WL;
 global WR;
 global PV1;global PV2;
 global force; global TR;
-global Beamflag;
+global Beamflag;global cantileverflag;
 global allcenter;
 global Uniforce; global Slopeforce;
 clear global allcenter;
 Beamflag=1;
 flag=0;
 force=0;
+clear global cantileverflag;
 clear global force;clear global TR;clear global Uniforce; clear global Slopeforce;
 clear global WR;clear global WL;clear global PV1; clear global PV2;
 clear global beam;
@@ -138,14 +139,14 @@ function Analysis_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global pnt;
 global Npnt;
-% global fctr;
-% global sctr;
+global TR;
+global Uniforce; global Slopeforce;
 global beam;
 global force;
 global Configid;
 global cantileverflag;
 
-[load,len,a]=getparametrs(beam,force);
+[load,len,a]=getparametrs(beam,force,TR,Uniforce,Slopeforce);
 set(handles.edit1,'String',strcat(num2str(load),' N'),'fontsize',16);
 [Maxdeflection,y]=lookuptable(Configid,cantileverflag,load,len,a);
 % Maxdeflection=(load*(len)^3)/(3*1000*1000);
@@ -176,31 +177,7 @@ for i=1:20
     end
     
 end    
-% Ft=cell2mat(force.pnts);
-% x1=beam.pnts(1,1);y1=beam.pnts(1,2);
-% x2=Ft(1,1);
-% x3=beam.pnts(2,1);y3=beam.pnts(2,2);
-% xx1=beam.pnts(4,1);yy1=beam.pnts(4,2);
-% xx2=Ft(1,1);
-% xx3=beam.pnts(3,1);yy3=beam.pnts(3,2);
-% 
-% for i=1:20
-%     y2=beam.pnts(2,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8*(i/20);
-%     yy2=beam.pnts(3,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8*(i/20);
-%     SP1=[x1,y1;x2,y2;x3,y3];
-%     SP2=[xx1,yy1;xx2,yy2;xx3,yy3];
-%     h1=Deflection1(SP1);
-%     h2=Deflection1(SP2);
-%     pause(0.1);
-%     delete(h1);
-%     delete(h2);
-% end
-% y2=beam.pnts(2,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8;
-% yy2=beam.pnts(3,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8;
-% SP1=[x1,y1;x2,y2;x3,y3];
-% SP2=[xx1,yy1;xx2,yy2;xx3,yy3];
-% h1=Deflection1(SP1);
-% h2=Deflection1(SP2);
+
 
 
 

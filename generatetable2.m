@@ -25,7 +25,7 @@ switch id
     case 3
         W=P;
         for i=1:length(x)
-            y(i)=W*x(i).*(L^3 - 2*L*x(i)^2+5*L*x(i).^2 + x(i)^3)/(24*E*I);
+            y(i)=W*x(i).*(L^3 - 2*L*x(i)^2+ x(i)^3)/(24*E*I);
         end   
     case 4
         M=P;

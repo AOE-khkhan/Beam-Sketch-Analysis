@@ -24,7 +24,7 @@ if cantileverflag==1
         Configid=4;       
     end
 else   
-    if Pforce && sum([PWL,PWR])==0 && PPV1 && PPV2 && ~PTR && ~Pudl && ~Puvl
+    if Pforce && sum([PWL,PWR])==0 && sum([PPV1,PPV2])>0 && ~PTR && ~Pudl && ~Puvl
         Configid=1;
     elseif ~Pforce && sum([PWL,PWR])==0 && PPV1 && PPV2 && ~PTR && Pudl && ~Puvl
         Configid=3;
