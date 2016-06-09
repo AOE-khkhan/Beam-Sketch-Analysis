@@ -116,11 +116,12 @@ global PV1;global PV2;
 global force; global TR;
 global Beamflag;
 global allcenter;
+global Uniforce; global Slopeforce;
 clear global allcenter;
 Beamflag=1;
 flag=0;
 force=0;
-clear global force;clear global TR;
+clear global force;clear global TR;clear global Uniforce; clear global Slopeforce;
 clear global WR;clear global WL;clear global PV1; clear global PV2;
 clear global beam;
 clear global ctr;
@@ -142,41 +143,65 @@ global Npnt;
 global beam;
 global force;
 global Configid;
+global cantileverflag;
 
-[load,len]=getparametrs(beam,force);
+[load,len,a]=getparametrs(beam,force);
 set(handles.edit1,'String',strcat(num2str(load),' N'),'fontsize',16);
-%Maxdeflection=lookuptable(Configid);
-Maxdeflection=(load*(len)^3)/(3*1000*1000);
+[Maxdeflection,y]=lookuptable(Configid,cantileverflag,load,len,a);
+% Maxdeflection=(load*(len)^3)/(3*1000*1000);
 set(handles.text2,'String',num2str(Maxdeflection),'fontsize',16);
 axes(handles.axes1);
 hold on
-Ft=cell2mat(force.pnts);
-x1=beam.pnts(1,1);y1=beam.pnts(1,2);
-x2=Ft(1,1);
-x3=beam.pnts(2,1);y3=beam.pnts(2,2);
-xx1=beam.pnts(4,1);yy1=beam.pnts(4,2);
-xx2=Ft(1,1);
-xx3=beam.pnts(3,1);yy3=beam.pnts(3,2);
-
+%% scale up the deflection 'y'
+y=100000*y;
+dy=beam.pnts(3,2)-beam.pnts(1,2);
 for i=1:20
-    y2=beam.pnts(2,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8*(i/20);
-    yy2=beam.pnts(3,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8*(i/20);
-    SP1=[x1,y1;x2,y2;x3,y3];
-    SP2=[xx1,yy1;xx2,yy2;xx3,yy3];
-    h1=Deflection1(SP1);
-    h2=Deflection1(SP2);
+    yi=i*y./20;
+    xi=[beam.pnts(4,1),beam.pnts(3,1)];
+    xi2=[beam.pnts(4,1),beam.pnts(3,1)];
+    h1=Deflection1(xi,beam.pnts(4,2),yi);
+    h2=Deflection1(xi2,beam.pnts(1,2),yi);
+    pnts(:,1)=get(h1,'XData')'; 
+    pnts(:,2)=get(h1,'YData')';
+    pnts2(:,1)=get(h2,'XData')'; 
+    pnts2(:,2)=get(h2,'YData')';
+    h3=plot([pnts(1,1);pnts2(1,1)],[pnts(1,2);pnts2(1,2)],'r--','linewidth',2);
+    h4=plot([pnts(end,1);pnts2(end,1)],[pnts(end,2);pnts2(end,2)],'r--','linewidth',2);
     pause(0.1);
+    if i<=19
     delete(h1);
     delete(h2);
-end
-y2=beam.pnts(2,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8;
-yy2=beam.pnts(3,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8;
-SP1=[x1,y1;x2,y2;x3,y3];
-SP2=[xx1,yy1;xx2,yy2;xx3,yy3];
-h1=Deflection1(SP1);
-h2=Deflection1(SP2);
+    delete(h3);
+    delete(h4);
+    end
+    
+end    
+% Ft=cell2mat(force.pnts);
+% x1=beam.pnts(1,1);y1=beam.pnts(1,2);
+% x2=Ft(1,1);
+% x3=beam.pnts(2,1);y3=beam.pnts(2,2);
+% xx1=beam.pnts(4,1);yy1=beam.pnts(4,2);
+% xx2=Ft(1,1);
+% xx3=beam.pnts(3,1);yy3=beam.pnts(3,2);
+% 
+% for i=1:20
+%     y2=beam.pnts(2,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8*(i/20);
+%     yy2=beam.pnts(3,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8*(i/20);
+%     SP1=[x1,y1;x2,y2;x3,y3];
+%     SP2=[xx1,yy1;xx2,yy2;xx3,yy3];
+%     h1=Deflection1(SP1);
+%     h2=Deflection1(SP2);
+%     pause(0.1);
+%     delete(h1);
+%     delete(h2);
+% end
+% y2=beam.pnts(2,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8;
+% yy2=beam.pnts(3,2)-(beam.pnts(2,1)-beam.pnts(1,1))/8;
+% SP1=[x1,y1;x2,y2;x3,y3];
+% SP2=[xx1,yy1;xx2,yy2;xx3,yy3];
+% h1=Deflection1(SP1);
+% h2=Deflection1(SP2);
 
-% dlmwrite('InkData.txt',pnt);
 
 
 function mouseDown(hObject, eventdata, handles)
@@ -215,10 +240,11 @@ global Hbeam; global Hforce;global HwallL; global HwallR;global HPV1; global HPV
 global HTR;
 global Beamflag;
 global allcenter;
+global cantileverflag;
 % global ctr;
 % global index;
 drawing = 0;
-pause(1.5);
+pause(1);
 flag=flag+1;
 % pause(1);
 % flag=flag+1;
@@ -321,11 +347,10 @@ if flag==1
     end
     pnt = zeros(1000,3);
     Npnt = 0;
-if ~(isempty(beam)) && ~(isempty(force)) && ... 
+if ~(isempty(beam)) && (~(isempty(force)) || ~(isempty(Uniforce)) || ~(isempty(Slopeforce))) && ... 
     (~(isempty(WL)) || ~(isempty(WR)) || ~(isempty(PV1)) || ~(isempty(PV2)))
- Configid=findconfiguration(force,WL,WR,PV1,PV2,TR);
-%  delete(Hforce);
-%  delete(HwallL);
+ [Configid,cantileverflag]=findconfiguration(force,WL,WR,PV1,PV2,TR,Uniforce,Slopeforce);
+
 %  [Hforce,HwallL]=beautify(beam,force,WL,WR,PV1,PV2,TR);
  end
 end
