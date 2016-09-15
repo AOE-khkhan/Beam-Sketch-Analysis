@@ -1,0 +1,11 @@
+************************************************BEAM SKETCH ANALYSIS********************************************************
+***Amit NM & Bing Xu
+*** May 2016
+****************************************************************************************************************************
+This is a piece of software application intended to analyse a beam-support system and gives out the maximum deflection of the
+corresponding position of the force detected from the sketch drawn by the user.
+The purpose of this application is to get an approximate magnitude and the position of the point of maximum deflection for various design
+purposes. A video demonstrating the use of the software is uploaded here as well for reference.
+
+The program has been written in MATLAB and the main file to run is named 'INK.m'
+***************************************************************************************************************************************
